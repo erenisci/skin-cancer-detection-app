@@ -6,31 +6,33 @@ This backend application provides secure API endpoints for a skin lesion classif
 
 ### Project Structure
 
+```
 backend/
-├── config/ # Environment configuration loading  
-│ └── config.py  
-├── detection/ # Image preprocessing & mask conversion tools  
-│ ├── data/  
-│ └── processing/  
-├── internal/ # Application logic and helpers  
-│ ├── database/ # MongoDB access logic  
-│ ├── email/ # SMTP mailer and verification code storage  
-│ ├── exception/ # Custom exception handling  
-│ ├── models/ # Pydantic request/response models  
-│ ├── tokens/ # JWT token creation and validation  
-│ └── utils/ # Password hashing, logger, response templates  
-├── models/ # Trained Keras model folders (used in ensemble_pipeline.py)  
-│ └── README.md # Instructions for model file structure  
-├── routes/ # FastAPI routers for all HTTP endpoints  
-│ ├── auth_controller.py  
-│ ├── detection.py  
-│ └── report_controller.py  
-├── static/ # Frontend assets (e.g., reset-password.html)  
-├── temp/ # Temporary uploaded image storage  
-├── .env # Environment variables  
-├── Dockerfile # (Optional) Docker container setup  
-├── main.py # FastAPI application entry point  
-└── requirements.txt # Python dependencies
+├── config/                         # Environment configuration loading
+│   └── config.py
+├── detection/                      # Image preprocessing & mask conversion tools
+│   ├── data/
+│   └── processing/
+├── internal/                       # Application logic and helpers
+│   ├── database/                   # MongoDB access logic
+│   ├── email/                      # SMTP mailer and verification code storage
+│   ├── exception/                  # Custom exception handling
+│   ├── models/                     # Pydantic request/response models
+│   ├── tokens/                     # JWT token creation and validation
+│   └── utils/                      # Password hashing, logger, response templates
+├── models/                         # Trained Keras model folders (used in ensemble_pipeline.py)
+│   └── README.md                   # Instructions for model file structure
+├── routes/                         # FastAPI routers for all HTTP endpoints
+│   ├── auth_controller.py
+│   ├── detection.py
+│   └── report_controller.py
+├── static/                         # Frontend assets (e.g., reset-password.html)
+├── temp/                           # Temporary uploaded image storage
+├── .env                            # Environment variables
+├── Dockerfile                      # (Optional) Docker container setup
+├── main.py                         # FastAPI application entry point
+└── requirements.txt                # Python dependencies
+```
 
 ---
 
