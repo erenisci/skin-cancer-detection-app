@@ -1,10 +1,10 @@
-# Skin Cancer Detection App (Flutter Frontend)
+## Skin Cancer Detection App (Flutter Frontend)
 
 This is the Flutter-based mobile and web frontend for the Skin Cancer Detection system. It connects to a FastAPI backend to handle user authentication, image upload, classification, and report management.
 
 ---
 
-## 📁 Project Structure
+### Project Structure
 
 ```
 frontend/
@@ -41,18 +41,18 @@ frontend/
 
 ---
 
-## 🚀 Features
+### Features
 
-- 🔐 User registration, login, and password reset (with backend)
-- 📷 Upload lesion images for classification
-- 🧠 View predictions and risk levels (mock or real)
-- 📊 Access previous reports and download PDFs
-- 🌗 Supports light and dark theme
-- 🖥️ Mobile and web responsive design
+- User registration, login, and password reset (with backend)
+- Upload lesion images for classification
+- View predictions and risk levels (mock or real)
+- Access previous reports and download PDFs
+- Supports light and dark theme
+- Mobile and web responsive design
 
 ---
 
-## 🧩 Setup Instructions
+### Setup Instructions
 
 1. Install Flutter SDK → https://docs.flutter.dev/get-started/install
 2. Run:
@@ -70,7 +70,7 @@ flutter run -d chrome
 
 ---
 
-## 🔗 API Configuration
+### API Configuration
 
 The app connects to a FastAPI backend.
 
@@ -82,7 +82,7 @@ const baseUrl = "http://10.0.2.2:8000"; // Android emulator
 
 ---
 
-## 🧪 Testing
+### Testing
 
 To run tests:
 
@@ -92,7 +92,7 @@ flutter test
 
 ---
 
-## 📎 Notes
+### Notes
 
 - The `/detect` endpoint returns dummy data unless real models are added.
 - Make sure the backend is running before using authentication or prediction features.
