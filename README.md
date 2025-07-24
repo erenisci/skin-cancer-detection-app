@@ -13,34 +13,34 @@ Designed with a clean user interface and backed by an ensemble of well-trained m
 <table align="center">
   <tr>
     <td align="center">
-      <img src="screenshots/Screenshot_1.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_1.png" width="190"/><br/>
       <b>Skin Health Matters</b><br/>
       Introduces users to the purpose of skin health tracking.
     </td>
     <td align="center">
-      <img src="screenshots/Screenshot_2.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_2.png" width="190"/><br/>
       <b>Spot the Danger Early</b><br/>
       Educates about early mole detection benefits.
     </td>
     <td align="center">
-      <img src="screenshots/Screenshot_3.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_3.png" width="190"/><br/>
       <b>AI-Powered Skin Analysis</b><br/>
       Highlights the use of artificial intelligence in diagnosis.
     </td>
   </tr>
   <tr>
     <td align="center">
-      <img src="screenshots/Screenshot_4.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_4.png" width="190"/><br/>
       <b>Preventive Care</b><br/>
       Encourages proactive habits for skin health.
     </td>
     <td align="center">
-      <img src="screenshots/Screenshot_5.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_5.png" width="190"/><br/>
       <b>Track Your Skin Changes</b><br/>
       Promotes regular tracking of moles and lesions.
     </td>
     <td align="center">
-      <img src="screenshots/Screenshot_6.png" width="180"/><br/>
+      <img src="screenshots/Screenshot_6.png" width="190"/><br/>
       <b>Your Health, Our Priority</b><br/>
       Builds user trust with privacy and security focus.
     </td>
