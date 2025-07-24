@@ -197,7 +197,7 @@ We worked on this project together:
 
 - [@erenisci](https://github.com/erenisci)
 - [@zscengiz](https://github.com/zscengiz)
-- [@MeldaErylmz](https://github.com/MeldaErylmz) testing
+- [@MeldaErylmz](https://github.com/MeldaErylmz)
 
 ---
 
