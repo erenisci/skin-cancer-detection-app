@@ -114,7 +114,7 @@ async def request_password_reset(request: ForgotPasswordRequest):
     reset_token = await generate_code()
     await save_verification_code(email, reset_token)
 
-    reset_link = f"http://localhost:8000/reset-password.html?token={reset_token}&email={email}"
+    reset_link = f"{conf['base_url']}/reset-password.html?token={reset_token}&email={email}"
     await send_email(email, "Password Reset", f"Click the link to reset your password:\n\n{reset_link}")
 
     return success_response(message="Password reset link sent to your email.")

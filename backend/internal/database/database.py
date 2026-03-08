@@ -7,7 +7,7 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 
 mongodb_uri = get_config("MONGO_URI")
 mongodb_name = get_config("MONGODB_DATABASE")
-print("DEBUG: mongodb_name =", mongodb_name)
+
 
 client = AsyncIOMotorClient(mongodb_uri)
 db = client[mongodb_name]

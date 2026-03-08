@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import jwt
@@ -43,7 +43,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> Optional[dict
             detail="Token not found or revoked",
         )
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
     expires_at = access_token_db["expires_at"]
 
     if now > expires_at:

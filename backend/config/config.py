@@ -39,6 +39,8 @@ conf["smtp_port"] = config("SMTP_PORT", default=587)
 conf["smtp_user"] = config("SMTP_USER", default="")
 conf["smtp_pass"] = config("SMTP_PASS", default="")
 
+conf["base_url"] = config("BASE_URL", default="http://localhost:8000")
+
 
 def get_config(name: str, default=None):
     if name == "all":
