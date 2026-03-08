@@ -1,6 +1,6 @@
 ## Skin Cancer Detection App (Flutter Frontend)
 
-This is the Flutter-based mobile frontend for the Skin Cancer Detection system. It connects to a FastAPI backend to handle user authentication, image upload, AI-powered classification, and report management.
+This is the Flutter-based mobile frontend for the Skin Cancer Detection system. It connects to a FastAPI backend to handle user authentication, image upload, classification result display, and report management.
 
 ---
 
@@ -43,7 +43,7 @@ frontend/
 
 - User registration, login, and password reset
 - Camera and gallery image capture with crop overlay
-- AI-powered skin lesion classification (ensemble model or dummy mode)
+- Skin lesion classification result display (real inference when backend models are loaded, dummy mode otherwise)
 - Detailed diagnosis result with confidence, risk level, and advice
 - PDF report generation and sharing
 - View and download past reports
