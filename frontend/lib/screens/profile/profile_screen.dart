@@ -1,9 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:frontend/services/api_endpoints.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -79,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final token = prefs.getString('access_token');
 
     final response = await http.post(
-      Uri.parse('http://localhost:8000/api/auth/update-profile'),
+      Uri.parse(ApiEndpoints.updateProfile),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token'
@@ -97,6 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await prefs.setString('refresh_token', data['refresh_token']);
       await _loadUserFromToken();
 
+      if (!mounted) return;
       setState(() {
         isEditingName = false;
         isEditingSurname = false;
@@ -115,6 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     } else {
+      if (!mounted) return;
       final error = jsonDecode(response.body)['detail'] ?? 'An error occurred';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Update error: $error')),
@@ -140,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -218,129 +222,189 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Future<bool> _onWillPop() async {
-    context.go('/home');
-    return false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? Colors.black : const Color(0xFFF0F6FF);
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: isDark ? Colors.black : const Color(0xFFF0F6FF),
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: isDark ? Colors.black : const Color(0xFFF0F6FF),
-          elevation: 0,
-          title: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home),
-                color: isDark ? Colors.white : const Color(0xFF4991FF),
-                onPressed: () => context.go('/home'),
-                tooltip: 'Home',
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Profile',
-                style: TextStyle(
-                  color: isDark ? Colors.white : const Color(0xFF4991FF),
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: bgColor,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: FloatingActionButton(
+          onPressed: () => context.go('/scan-select'),
+          backgroundColor: Colors.blue,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.camera_alt),
         ),
-        body: SingleChildScrollView(
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
           child: Column(
             children: [
-              const SizedBox(height: 24),
-              _buildEditableField(
-                title: "First Name",
-                value: name,
-                isEditing: isEditingName,
-                controller: nameController,
-                onChange: () => setState(() => isEditingName = true),
-                onCancel: () => setState(() {
-                  isEditingName = false;
-                  nameController.text = name;
-                }),
-              ),
-              _buildEditableField(
-                title: "Last Name",
-                value: surname,
-                isEditing: isEditingSurname,
-                controller: surnameController,
-                onChange: () => setState(() => isEditingSurname = true),
-                onCancel: () => setState(() {
-                  isEditingSurname = false;
-                  surnameController.text = surname;
-                }),
-              ),
-              _buildEditableField(
-                title: "Email",
-                value: email,
-                isEditing: isEditingEmail,
-                controller: emailController,
-                onChange: () => setState(() => isEditingEmail = true),
-                onCancel: () => setState(() {
-                  isEditingEmail = false;
-                  emailController.text = email;
-                }),
-              ),
-              const SizedBox(height: 36),
-              Center(
-                child: ElevatedButton(
-                  onPressed: () {
-                    final nameError = _validateName(nameController.text.trim());
-                    final surnameError =
-                        _validateSurname(surnameController.text.trim());
-                    final emailError =
-                        _validateEmail(emailController.text.trim());
-
-                    if (nameError != null ||
-                        surnameError != null ||
-                        emailError != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text(nameError ?? surnameError ?? emailError!),
-                          backgroundColor: Colors.red,
+              // Custom AppBar replacement
+              SafeArea(
+                bottom: false,
+                child: Container(
+                  color: bgColor,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      Text(
+                        'Profile',
+                        style: TextStyle(
+                          color:
+                              isDark ? Colors.white : const Color(0xFF4991FF),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                      return;
-                    }
-
-                    _updateProfileField(
-                      nameController.text.trim(),
-                      surnameController.text.trim(),
-                      emailController.text.trim(),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        isDark ? Colors.white : const Color(0xFF4991FF),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: Text(
-                    'Save',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: isDark ? Colors.black : Colors.white,
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              // Scrollable body content
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 24),
+                      _buildEditableField(
+                        title: "First Name",
+                        value: name,
+                        isEditing: isEditingName,
+                        controller: nameController,
+                        onChange: () => setState(() => isEditingName = true),
+                        onCancel: () => setState(() {
+                          isEditingName = false;
+                          nameController.text = name;
+                        }),
+                      ),
+                      _buildEditableField(
+                        title: "Last Name",
+                        value: surname,
+                        isEditing: isEditingSurname,
+                        controller: surnameController,
+                        onChange: () => setState(() => isEditingSurname = true),
+                        onCancel: () => setState(() {
+                          isEditingSurname = false;
+                          surnameController.text = surname;
+                        }),
+                      ),
+                      _buildEditableField(
+                        title: "Email",
+                        value: email,
+                        isEditing: isEditingEmail,
+                        controller: emailController,
+                        onChange: () => setState(() => isEditingEmail = true),
+                        onCancel: () => setState(() {
+                          isEditingEmail = false;
+                          emailController.text = email;
+                        }),
+                      ),
+                      const SizedBox(height: 36),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final nameError =
+                                _validateName(nameController.text.trim());
+                            final surnameError =
+                                _validateSurname(surnameController.text.trim());
+                            final emailError =
+                                _validateEmail(emailController.text.trim());
+
+                            if (nameError != null ||
+                                surnameError != null ||
+                                emailError != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      nameError ?? surnameError ?? emailError!),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            _updateProfileField(
+                              nameController.text.trim(),
+                              surnameController.text.trim(),
+                              emailController.text.trim(),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                isDark ? Colors.white : const Color(0xFF4991FF),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 40, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            'Save',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: isDark ? Colors.black : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 50),
+                    ],
+                  ),
+                ),
+              ),
+              // Custom bottom navbar
+              SafeArea(
+                top: false,
+                child: Container(
+                  color: bgColor,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.home,
+                              color: isDark ? Colors.white70 : Colors.black),
+                          onPressed: () => context.go('/home'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.history,
+                              color: isDark ? Colors.white70 : Colors.black),
+                          onPressed: () => context.go('/reports'),
+                        ),
+                      ),
+                      const SizedBox(width: 56),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: const Icon(Icons.person,
+                              color: Colors.blueAccent),
+                          onPressed: () => context.go('/profile'),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.settings,
+                              color: isDark ? Colors.white70 : Colors.black),
+                          onPressed: () => context.go('/settings-screen'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

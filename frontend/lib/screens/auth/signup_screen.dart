@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../services/api_service.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -21,24 +22,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool _obscurePassword = true;
   final _formKey = GlobalKey<FormState>();
 
-  final List<String> allowedDomains = [
-    'gmail.com',
-    'hotmail.com',
-    'outlook.com',
-    'icloud.com',
-    'yahoo.com',
-    'edu.tr',
-    'edu.com',
-    'bilkent.edu.tr',
-    'hacettepe.edu.tr',
-    'ostimteknik.edu.tr',
-  ];
-
   bool _isValidEmail(String email) {
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
-    final domain = email.split('@').last.toLowerCase();
-    return regex.hasMatch(email) &&
-        allowedDomains.any((d) => domain == d || domain.endsWith(d));
+    return regex.hasMatch(email);
   }
 
   bool _isValidPassword(String password) {
@@ -113,113 +99,119 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: Colors.white,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Center(
-                child: SingleChildScrollView(
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Create an Account',
-                          style: TextStyle(
-                              fontSize: 28, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 24),
-                        TextFormField(
-                          controller: _nameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Name',
-                            border: OutlineInputBorder(),
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: SingleChildScrollView(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 48),
+                          const Text(
+                            'Create an Account',
+                            style: TextStyle(
+                                fontSize: 28, fontWeight: FontWeight.bold),
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().length < 3) {
-                              return 'Name must be at least 3 characters.';
-                            }
-                            if (!RegExp(r'^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$')
-                                .hasMatch(value)) {
-                              return 'Name must contain only letters.';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _surnameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Surname',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: 24),
+                          TextFormField(
+                            controller: _nameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Name',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().length < 3) {
+                                return 'Name must be at least 3 characters.';
+                              }
+                              if (!RegExp(r'^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$')
+                                  .hasMatch(value)) {
+                                return 'Name must contain only letters.';
+                              }
+                              return null;
+                            },
                           ),
-                          validator: (value) {
-                            if (value == null || value.trim().length < 3) {
-                              return 'Surname must be at least 3 characters.';
-                            }
-                            if (!RegExp(r'^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$')
-                                .hasMatch(value)) {
-                              return 'Surname must contain only letters.';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _surnameController,
+                            decoration: const InputDecoration(
+                              labelText: 'Surname',
+                              border: OutlineInputBorder(),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().length < 3) {
+                                return 'Surname must be at least 3 characters.';
+                              }
+                              if (!RegExp(r'^[a-zA-ZğüşöçıİĞÜŞÖÇ\s]+$')
+                                  .hasMatch(value)) {
+                                return 'Surname must contain only letters.';
+                              }
+                              return null;
+                            },
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value == null || !_isValidEmail(value)) {
-                              return 'Enter a valid email with approved domain.';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            border: const OutlineInputBorder(),
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscurePassword
-                                  ? Icons.visibility
-                                  : Icons.visibility_off),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || !_isValidEmail(value)) {
+                                return 'Enter a valid email address.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordController,
+                            obscureText: _obscurePassword,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              border: const OutlineInputBorder(),
+                              suffixIcon: IconButton(
+                                icon: Icon(_obscurePassword
+                                    ? Icons.visibility
+                                    : Icons.visibility_off),
+                                onPressed: () {
+                                  setState(() {
+                                    _obscurePassword = !_obscurePassword;
+                                  });
+                                },
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || !_isValidPassword(value)) {
+                                return 'Password must be 8+ chars, include upper/lower case, number & special char.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            onPressed: _handleSignup,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              minimumSize: const Size.fromHeight(48),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold),
                             ),
                           ),
-                          validator: (value) {
-                            if (value == null || !_isValidPassword(value)) {
-                              return 'Password must be 8+ chars, include upper/lower case, number & special char.';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _handleSignup,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            minimumSize: const Size.fromHeight(48),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: const Text(
-                            'Sign Up',
-                            style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
                 ),

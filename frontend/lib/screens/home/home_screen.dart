@@ -1,12 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:go_router/go_router.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shimmer/shimmer.dart';
-import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -35,7 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadUserData();
-    _determinePosition().then((position) => _fetchUVIndex(position));
+    _determinePosition().then((position) {
+      if (mounted) _fetchUVIndex(position);
+    }).catchError((_) {
+      if (mounted) setState(() => _isLoadingUV = false);
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -58,39 +63,50 @@ class _HomeScreenState extends State<HomeScreen> {
       permission = await Geolocator.requestPermission();
     }
     if (permission == LocationPermission.deniedForever) {
-      throw Exception('Konum izni kalıcı olarak reddedildi.');
+      throw Exception('Location permission permanently denied.');
     }
     return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high));
   }
 
   Future<void> _fetchUVIndex(Position position) async {
     final lat = position.latitude;
     final lon = position.longitude;
     final apiKey = dotenv.env['OPENWEATHER_API_KEY'];
-    final url =
-        'https://api.openweathermap.org/data/3.0/onecall?lat=$lat&lon=$lon&exclude=minutely,hourly,daily,alerts&appid=$apiKey&units=metric';
-    final response = await http.get(Uri.parse(url));
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final uv = data['current']['uvi'];
-      String icon;
-      if (uv <= 2) {
-        icon = 'assets/images/cloud.png';
-      } else if (uv <= 5) {
-        icon = 'assets/images/sun_behind_cloud.png';
-      } else if (uv <= 7) {
-        icon = 'assets/images/sun.png';
-      } else if (uv <= 10) {
-        icon = 'assets/images/sun_bright.png';
+    if (apiKey == null || apiKey.isEmpty) {
+      setState(() => _isLoadingUV = false);
+      return;
+    }
+    try {
+      final url =
+          'https://api.openweathermap.org/data/3.0/onecall?lat=$lat&lon=$lon&exclude=minutely,hourly,daily,alerts&appid=$apiKey&units=metric';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final uv = data['current']['uvi'];
+        String icon;
+        if (uv <= 2) {
+          icon = 'assets/images/cloud.png';
+        } else if (uv <= 5) {
+          icon = 'assets/images/sun_behind_cloud.png';
+        } else if (uv <= 7) {
+          icon = 'assets/images/sun.png';
+        } else if (uv <= 10) {
+          icon = 'assets/images/sun_bright.png';
+        } else {
+          icon = 'assets/images/sun_warning.png';
+        }
+        setState(() {
+          uvIndex = uv.toDouble();
+          uvIconPath = icon;
+          _isLoadingUV = false;
+        });
       } else {
-        icon = 'assets/images/sun_warning.png';
+        setState(() => _isLoadingUV = false);
       }
-      setState(() {
-        uvIndex = uv.toDouble();
-        uvIconPath = icon;
-        _isLoadingUV = false;
-      });
+    } catch (_) {
+      setState(() => _isLoadingUV = false);
     }
   }
 
@@ -101,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Color _getIconColor(int index, bool isDark) {
     if (_selectedIndex == index) {
-      return isDark ? Colors.blueAccent : Colors.blueAccent;
+      return Colors.blueAccent;
     } else {
       return isDark ? Colors.white70 : Colors.black;
     }
@@ -119,152 +135,201 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
     final date = DateTime.now();
     final formattedDate = "${date.day}/${date.month}/${date.year}";
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  backgroundImage:
-                      AssetImage('assets/images/profilePlaceholder.png'),
-                ),
-                const SizedBox(width: 10),
-                _isLoadingUser
-                    ? Shimmer.fromColors(
-                        baseColor: Colors.grey.shade300,
-                        highlightColor: Colors.grey.shade100,
-                        child: Container(
-                            width: 80, height: 20, color: Colors.white),
-                      )
-                    : Text(
-                        'Hi, $userName',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : null),
+      backgroundColor: bgColor,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 2),
+        child: FloatingActionButton(
+          onPressed: () => _onItemTapped(2),
+          backgroundColor: Colors.blue,
+          shape: const CircleBorder(),
+          child: const Icon(Icons.camera_alt),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 480),
+          child: Column(
+            children: [
+              // Scrollable body content
+              Expanded(
+                child: SafeArea(
+                  bottom: false,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    children: [
+                      Row(
+                        children: [
+                          const CircleAvatar(
+                            backgroundImage: AssetImage(
+                                'assets/images/profilePlaceholder.png'),
+                          ),
+                          const SizedBox(width: 10),
+                          _isLoadingUser
+                              ? Shimmer.fromColors(
+                                  baseColor: Colors.grey.shade300,
+                                  highlightColor: Colors.grey.shade100,
+                                  child: Container(
+                                      width: 80,
+                                      height: 20,
+                                      color: Colors.white),
+                                )
+                              : Text(
+                                  'Hi, $userName',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          color: isDark ? Colors.white : null),
+                                ),
+                        ],
                       ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: _infoBoxImage(
-                    imagePath: 'assets/images/calendar.png',
-                    title: "Today",
-                    value: formattedDate,
-                    backgroundColor:
-                        isDark ? Colors.grey[850]! : const Color(0xFFE0F2FE),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _isLoadingUV
-                      ? Shimmer.fromColors(
-                          baseColor: Colors.grey.shade300,
-                          highlightColor: Colors.grey.shade100,
-                          child: Container(
-                            height: 90,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _infoBoxImage(
+                              imagePath: 'assets/images/calendar.png',
+                              title: "Today",
+                              value: formattedDate,
+                              backgroundColor: isDark
+                                  ? Colors.grey[850]!
+                                  : const Color(0xFFE0F2FE),
                             ),
                           ),
-                        )
-                      : _infoBoxImage(
-                          imagePath: uvIconPath,
-                          title: "UV Index",
-                          value: uvIndex!.toStringAsFixed(1),
-                          backgroundColor: _getUVBoxColor(uvIndex!, isDark),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _isLoadingUV
+                                ? Shimmer.fromColors(
+                                    baseColor: Colors.grey.shade300,
+                                    highlightColor: Colors.grey.shade100,
+                                    child: Container(
+                                      height: 90,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                  )
+                                : _infoBoxImage(
+                                    imagePath: uvIconPath,
+                                    title: "UV Index",
+                                    value: uvIndex != null
+                                        ? uvIndex!.toStringAsFixed(1)
+                                        : 'N/A',
+                                    backgroundColor: uvIndex != null
+                                        ? _getUVBoxColor(uvIndex!, isDark)
+                                        : (isDark
+                                            ? Colors.grey[850]!
+                                            : Colors.grey[200]!),
+                                  ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 30),
+                      _infoCard("Check your moles regularly.",
+                          "assets/images/skinProtection.png", isDark),
+                      const SizedBox(height: 12),
+                      _infoCard("Use sunscreen daily.",
+                          "assets/images/sunCream.png", isDark),
+                      const SizedBox(height: 12),
+                      _infoCard("Consult a doctor for odd spots.",
+                          "assets/images/hospital.png", isDark),
+                      const SizedBox(height: 12),
+                      _infoCard("Avoid excessive sun exposure.",
+                          "assets/images/sunProtection.png", isDark),
+                      const SizedBox(height: 12),
+                      _infoCard(
+                          "Stay hydrated.", "assets/images/pill.png", isDark),
+                      const SizedBox(height: 30),
+                      Text(
+                        "Camera Tips",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : null,
                         ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        height: 180,
+                        child: PageView(
+                          controller: _cameraTipsController,
+                          children: [
+                            _cameraTip("Take photos in bright lighting.",
+                                "assets/images/light.png", isDark),
+                            _cameraTip("Center the mole in the square.",
+                                "assets/images/center.png", isDark),
+                            _cameraTip("Hold phone steady",
+                                "assets/images/steady.png", isDark),
+                            _cameraTip("Don't use filters or flash.",
+                                "assets/images/flash.png", isDark),
+                            _cameraTip("Avoid blurry or angled shots.",
+                                "assets/images/blurry.png", isDark),
+                            _cameraTip("Keep the area clean and dry.",
+                                "assets/images/clean.png", isDark),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 30),
-            _infoCard("Check your moles regularly.",
-                "assets/images/skinProtection.png", isDark),
-            const SizedBox(height: 12),
-            _infoCard(
-                "Use sunscreen daily.", "assets/images/sunCream.png", isDark),
-            const SizedBox(height: 12),
-            _infoCard("Consult a doctor for odd spots.",
-                "assets/images/hospital.png", isDark),
-            const SizedBox(height: 12),
-            _infoCard("Avoid excessive sun exposure.",
-                "assets/images/sunProtection.png", isDark),
-            const SizedBox(height: 12),
-            _infoCard("Stay hydrated.", "assets/images/pill.png", isDark),
-            const SizedBox(height: 30),
-            Text(
-              "Camera Tips",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : null,
               ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 180,
-              child: PageView(
-                controller: _cameraTipsController,
-                children: [
-                  _cameraTip("Take photos in bright lighting.",
-                      "assets/images/light.png", isDark),
-                  _cameraTip("Center the mole in the square.",
-                      "assets/images/center.png", isDark),
-                  _cameraTip(
-                      "Hold phone steady", "assets/images/steady.png", isDark),
-                  _cameraTip("Don’t use filters or flash.",
-                      "assets/images/flash.png", isDark),
-                  _cameraTip("Avoid blurry or angled shots.",
-                      "assets/images/blurry.png", isDark),
-                  _cameraTip("Keep the area clean and dry.",
-                      "assets/images/clean.png", isDark),
-                ],
+              // Custom bottom navbar
+              SafeArea(
+                top: false,
+                child: Container(
+                  color: bgColor,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon:
+                              Icon(Icons.home, color: _getIconColor(0, isDark)),
+                          onPressed: () => _onItemTapped(0),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.history,
+                              color: _getIconColor(1, isDark)),
+                          onPressed: () => _onItemTapped(1),
+                        ),
+                      ),
+                      const SizedBox(width: 56),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.person,
+                              color: _getIconColor(3, isDark)),
+                          onPressed: () => _onItemTapped(3),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 56,
+                        child: IconButton(
+                          icon: Icon(Icons.settings,
+                              color: _getIconColor(4, isDark)),
+                          onPressed: () => _onItemTapped(4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            IconButton(
-                icon: Icon(Icons.home, color: _getIconColor(0, isDark)),
-                onPressed: () => _onItemTapped(0)),
-            IconButton(
-                icon: Icon(Icons.history, color: _getIconColor(1, isDark)),
-                onPressed: () => _onItemTapped(1)),
-            const SizedBox(width: 48),
-            IconButton(
-                icon: Icon(Icons.person, color: _getIconColor(3, isDark)),
-                onPressed: () => _onItemTapped(3)),
-            IconButton(
-                icon: Icon(Icons.settings, color: _getIconColor(4, isDark)),
-                onPressed: () => _onItemTapped(4)),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _onItemTapped(2),
-        backgroundColor: Colors.blue,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.camera_alt),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 

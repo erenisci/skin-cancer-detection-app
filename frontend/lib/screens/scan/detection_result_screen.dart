@@ -1,10 +1,13 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:go_router/go_router.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:frontend/screens/reports/pdf.dart';
+import 'package:frontend/services/api_endpoints.dart';
+import 'package:frontend/services/api_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:http/http.dart' as http;
+import 'package:share_plus/share_plus.dart';
 
 class DetectionResultScreen extends StatefulWidget {
   final File file;
@@ -74,7 +77,7 @@ class _DetectionResultScreenState extends State<DetectionResultScreen>
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse("http://192.168.0.10:8000/detect"),
+        Uri.parse(ApiEndpoints.detect),
       );
       request.files
           .add(await http.MultipartFile.fromPath('file', widget.file.path));
@@ -82,7 +85,10 @@ class _DetectionResultScreenState extends State<DetectionResultScreen>
       final responseBody = await response.stream.bytesToString();
       final data = jsonDecode(responseBody);
 
-      final predictions = List<Map<String, dynamic>>.from(data['predictions']);
+      final rawPredictions = data['predictions'];
+      final predictions = rawPredictions != null
+          ? List<Map<String, dynamic>>.from(rawPredictions)
+          : <Map<String, dynamic>>[];
       setState(() {
         _predictions = predictions;
         _loading = false;
@@ -106,6 +112,19 @@ class _DetectionResultScreenState extends State<DetectionResultScreen>
         setState(() {
           _pdfPath = path;
         });
+
+        try {
+          await ApiService.uploadReport(
+            imageFile: widget.file,
+            pdfFile: File(path),
+            label: label,
+            confidence: confidence,
+            riskLevel: risk,
+            advice: advice,
+          );
+        } catch (e) {
+          debugPrint('Report upload failed: $e');
+        }
       }
     } catch (e) {
       debugPrint("Detection error: $e");
@@ -153,7 +172,7 @@ class _DetectionResultScreenState extends State<DetectionResultScreen>
               icon: Icon(Icons.more_vert, color: textColor),
               onSelected: (value) async {
                 if (value == 'download') {
-                  await Share.shareXFiles([XFile(_pdfPath!)]);
+                  await SharePlus.instance.share(ShareParams(files: [XFile(_pdfPath!)]));
                 }
               },
               itemBuilder: (context) => [

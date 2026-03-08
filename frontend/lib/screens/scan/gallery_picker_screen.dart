@@ -1,11 +1,12 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:frontend/services/api_service.dart';
 import 'package:frontend/screens/reports/pdf.dart';
+import 'package:frontend/services/api_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class GalleryPickerScreen extends StatefulWidget {
   const GalleryPickerScreen({super.key});
@@ -125,6 +126,7 @@ class _GalleryPickerScreenState extends State<GalleryPickerScreen>
         );
 
         await Future.delayed(const Duration(seconds: 1));
+        if (!mounted) return;
         context.go('/detection-result', extra: _croppedFile!);
       } else if (mounted) {
         context.pop();

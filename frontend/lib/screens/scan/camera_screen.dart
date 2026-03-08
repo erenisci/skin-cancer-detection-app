@@ -1,14 +1,16 @@
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart';
+
 import 'package:camera/camera.dart';
+import 'package:flutter/material.dart';
+import 'package:frontend/screens/reports/pdf.dart';
+import 'package:frontend/services/api_endpoints.dart';
+import 'package:frontend/services/api_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:frontend/services/api_service.dart';
-import 'package:frontend/screens/reports/pdf.dart';
 
 class CameraScreen extends StatefulWidget {
   final String bodyPart;
@@ -102,7 +104,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   Future<Map<String, dynamic>?> _runDetection(File imageFile) async {
     try {
-      final uri = Uri.parse("http://192.168.0.10:8000/detect");
+      final uri = Uri.parse(ApiEndpoints.detect);
       final request = http.MultipartRequest('POST', uri);
       request.files
           .add(await http.MultipartFile.fromPath('file', imageFile.path));
@@ -132,6 +134,7 @@ class _CameraScreenState extends State<CameraScreen>
 
       final prediction = await _runDetection(croppedFile);
       if (prediction == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("No lesion detected.")),
         );
@@ -190,14 +193,14 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<String> _cropToBox(String imagePath) async {
+    final screenSize = MediaQuery.of(context).size;
+
     final original = File(imagePath);
     final bytes = await original.readAsBytes();
 
     final codec = await ui.instantiateImageCodec(bytes);
     final frame = await codec.getNextFrame();
     final image = frame.image;
-
-    final screenSize = MediaQuery.of(context).size;
     final scaleX = image.width / screenSize.width;
     final scaleY = image.height / screenSize.height;
 
@@ -322,9 +325,10 @@ class _CameraScreenState extends State<CameraScreen>
                     data: SliderTheme.of(context).copyWith(
                       activeTrackColor: Colors.lightBlueAccent,
                       inactiveTrackColor:
-                          Colors.lightBlueAccent.withOpacity(0.3),
+                          Colors.lightBlueAccent.withValues(alpha: 0.3),
                       thumbColor: Colors.lightBlueAccent,
-                      overlayColor: Colors.lightBlueAccent.withOpacity(0.125),
+                      overlayColor:
+                          Colors.lightBlueAccent.withValues(alpha: 0.125),
                     ),
                     child: Slider(
                       value: _zoomLevel,
@@ -350,7 +354,7 @@ class _OverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.black.withOpacity(0.6);
+    final paint = Paint()..color = Colors.black.withValues(alpha: 0.6);
     final fullPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final boxPath = Path()..addRRect(RRect.fromRectXY(boxRect, 8, 8));

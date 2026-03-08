@@ -52,92 +52,115 @@ class _ScanSelectScreenState extends State<ScanSelectScreen> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: bgColor,
-        elevation: 0,
-        title: Row(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.home),
-              color: textColor,
-              onPressed: () => context.go('/home'),
-              tooltip: 'Go to Home',
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'Select Scan Area',
-              style: TextStyle(
-                color: textColor,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
       body: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Tap on a body part",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.blueAccent,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Expanded(
-                  child: GridView.count(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.3,
-                    children: bodyParts.map((part) {
-                      return InkWell(
-                        onTap: () => _selectPart(part['name']),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black12,
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+          // Centered constrained content
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Custom AppBar replacement
+                  SafeArea(
+                    bottom: false,
+                    child: Container(
+                      color: bgColor,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 12),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.home, color: textColor),
+                            onPressed: () => context.go('/home'),
+                            tooltip: 'Go to Home',
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(part['icon'],
-                                  size: 40, color: Colors.blue.shade800),
-                              const SizedBox(height: 10),
-                              Text(
-                                part['name'],
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 4),
+                          Text(
+                            'Select Scan Area',
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  // Body content
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Tap on a body part",
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color:
+                                  isDark ? Colors.white : Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Expanded(
+                            child: GridView.count(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 1.3,
+                              children: bodyParts.map((part) {
+                                return InkWell(
+                                  onTap: () => _selectPart(part['name']),
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: cardColor,
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(part['icon'],
+                                            size: 40,
+                                            color: Colors.blue.shade800),
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          part['name'],
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          // Modal overlay — full-screen, outside ConstrainedBox
           if (showModal)
             GestureDetector(
               onTap: () => setState(() => showModal = false),
@@ -145,8 +168,8 @@ class _ScanSelectScreenState extends State<ScanSelectScreen> {
                 color: Colors.black54,
                 alignment: Alignment.center,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 24, horizontal: 20),
                   margin: const EdgeInsets.symmetric(horizontal: 32),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.grey[900] : Colors.white,
