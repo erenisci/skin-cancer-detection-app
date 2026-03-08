@@ -1,6 +1,6 @@
 ## Skin Cancer Detection Backend
 
-This backend provides secure API endpoints for a skin lesion classification system. It includes user authentication, lesion analysis via an ensemble Keras pipeline, and report storage using MongoDB.
+This backend provides secure API endpoints for a skin lesion tracking system. It includes user authentication, image upload handling, PDF report storage, and an ensemble Keras inference pipeline that activates automatically when model files are placed in `backend/models/` (not included in this repository).
 
 ---
 
@@ -44,7 +44,7 @@ backend/
 
 - FastAPI
 - MongoDB + Motor (async)
-- TensorFlow / Keras (ensemble inference)
+- TensorFlow / Keras (ensemble inference — model files not included, see `models/README.md`)
 - JWT (access + refresh tokens)
 - Pydantic
 - SMTP email integration
