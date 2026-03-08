@@ -1,35 +1,48 @@
-## Models Directory
+# Models Directory
 
-This directory holds the trained Keras models used for ensemble predictions in the skin lesion classification pipeline.
+Place the 15 trained `.keras` files here following the exact folder and file names below.
+The backend auto-detects their presence and switches from dummy mode to real inference.
 
-### Folder Structure
+```
+models/
+├── melanoma_models/
+│   ├── xception_finetuned.keras
+│   ├── densenet_finetuned.keras
+│   └── cnn_model.keras
+├── nevus_models/
+│   ├── xception_finetuned.keras
+│   ├── densenet_finetuned.keras
+│   └── cnn_finetuned.keras
+├── binary_models/
+│   ├── xception_finetuned.keras
+│   ├── densenet_finetuned.keras
+│   └── cnn_finetuned.keras
+├── malignant_models/
+│   ├── xception_model.keras
+│   ├── densenet_finetuned.keras
+│   └── cnn_finetuned.keras
+└── benign_models/
+    ├── xception_finetuned.keras
+    ├── densenet_model.keras
+    └── cnn_finetuned.keras
+```
 
-Organize your models into the following subdirectories:
+> Note: Some file names differ intentionally from the standard `_finetuned` pattern:
+>
+> - `melanoma_models/cnn_model.keras` (not `cnn_finetuned`)
+> - `malignant_models/xception_model.keras` (not `xception_finetuned`)
+> - `benign_models/densenet_model.keras` (not `densenet_finetuned`)
+>
+> These names must match exactly — the pipeline in `routes/detection.py` loads them by path.
 
-- `melanoma_models/`: Binary models trained to detect melanoma.
-- `nevus_models/`: Binary models trained to detect nevus.
-- `binary_models/`: Binary models for general benign vs malignant classification.
-- `malignant_models/`: Multi-class models for malignant subtypes (AKIEC, BCC).
-- `benign_models/`: Multi-class models for benign subtypes (BKL, DF, VASC).
+## Activating Real Inference
 
-Each folder should contain `.keras` model files compatible with `tf.keras.models.load_model()`.
+Once all 15 files are present, open `backend/routes/detection.py` and follow the
+`# --- TO ACTIVATE REAL PIPELINE ---` instructions in the comments:
 
-### Naming Convention
+1. Uncomment the TensorFlow/numpy/asyncio imports at the top.
+2. Uncomment the `load_and_preprocess_image`, `predict_binary_ensemble`, and `classify_image` functions.
+3. In the `/detect` endpoint, replace the `if True:` dummy block with the commented-out real pipeline block.
 
-Ensure model files are clearly named, for example:
-
-- `xception_finetuned.keras`
-- `densenet_finetuned.keras`
-- `cnn_finetuned.keras`
-
-- `xception_model.keras`
-- `densenet_model.keras`
-- `cnn_model.keras`
-
-### Note
-
-This folder is currently empty. Once trained models are placed in the appropriate subdirectories, the `ensemble_pipeline.py` will be able to perform actual predictions.
-
----
-
-> This file exists to ensure the directory is tracked by version control (Git).
+The model training repository is available at:
+[https://github.com/erenisci/skin-cancer-detection](https://github.com/erenisci/skin-cancer-detection)

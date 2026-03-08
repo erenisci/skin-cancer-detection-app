@@ -1,14 +1,12 @@
-# 🧠 Skin Cancer Detection App
+# Skin Cancer Detection App
 
-An AI-powered Flutter application that helps users detect early signs of skin cancer using deep learning models.  
-The app supports image classification, detailed medical-like reports, exportable PDF summaries, and personalized skincare advice.  
-Designed with a clean user interface and backed by an ensemble of well-trained models.
+An AI-powered Flutter application that helps users detect early signs of skin cancer using a deep learning ensemble pipeline. The app supports image classification, detailed diagnosis results, exportable PDF reports, and personalized skincare advice — all backed by a FastAPI backend and MongoDB.
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
-### 👋 Onboarding Flow
+### Onboarding Flow
 
 <table align="center">
   <tr>
@@ -49,16 +47,16 @@ Designed with a clean user interface and backed by an ensemble of well-trained m
 
 ---
 
-### 🔐 Authentication
+### Authentication
 
 <p align="center">
   <img src="screenshots/Screenshot_7.png" width="270"/><br/>
-  Sign in securely via Email or Google to access all features.
+  Sign in securely via email to access all features.
 </p>
 
 ---
 
-### 🧪 Prediction Result
+### Prediction Result
 
 <p align="center">
   <img src="screenshots/Screenshot_9.jpg" width="270"/><br/>
@@ -67,97 +65,82 @@ Designed with a clean user interface and backed by an ensemble of well-trained m
 
 ---
 
-### 📊 Saved Reports
+### Saved Reports
 
 <p align="center">
   <img src="screenshots/Screenshot_11.jpg" width="270"/>
   <img src="screenshots/Screenshot_8.jpg" width="270"/><br/>
-  View past analysis, diagnosis, and download professional PDF reports.
+  View past analyses and download professional PDF reports.
 </p>
 
 ---
 
-### 🏠 Home Page
+### Home Page
 
 <p align="center">
   <img src="screenshots/Screenshot_10.jpg" width="270"/><br/>
-  Get daily skin health tips personalized for you.
+  Daily skin health tips and real-time UV index data.
 </p>
 
 ---
 
-## 🧩 Tech Stack
+## Tech Stack
 
-This project is a full-stack AI-powered mobile solution combining mobile development, backend APIs, and deep learning.
-
-- **Frontend:** Flutter (Dart) for multi-platform mobile UI
-- **Backend:** FastAPI (Python) for scalable API development
-- **Modeling:** TensorFlow/Keras for classification, YOLO for mask preprocessing
-- **Database:** MongoDB with Motor (async I/O)
-- **Authentication:** JWT-based auth + Google Sign-In
-- **Extras:** PDF report generation, email verification, Docker containerization
-
----
-
-## 📂 Folder Structure (Frontend)
-
-```
-lib/
-├── app/              # Routing configuration
-├── assets/           # Fonts and UI illustrations
-├── core/             # Theme colors, utilities
-├── models/           # Dart models (request/response)
-├── screens/          # UI logic, grouped by feature
-├── services/         # RESTful API interactions
-├── widgets/          # Reusable widgets
-└── main.dart         # App entry point
-```
+| Layer        | Technology                                      |
+|--------------|-------------------------------------------------|
+| Frontend     | Flutter (Dart), go_router, provider             |
+| Backend      | FastAPI (Python 3.12), Uvicorn                  |
+| AI / ML      | TensorFlow 2.x / Keras — ensemble pipeline      |
+| Database     | MongoDB with Motor (async)                      |
+| Auth         | JWT (access + refresh tokens), bcrypt           |
+| Reports      | PDF generation, GridFS file storage             |
+| Email        | SMTP via aiosmtplib                             |
 
 ---
 
-## 🧠 Model Overview (Backend)
+## Model Overview
 
-This app uses a **multi-stage ensemble pipeline** for image classification:
-
-- Stage 1: Binary classifier (Melanoma detection)
-- Stage 2: Nevus vs Not Nevus
-- Stage 3: Benign vs Malignant
-- Stage 4: Subtype diagnosis (AKIEC, BCC, DF, VASC, BKL)
-
-All Keras models are loaded dynamically at inference time. Each model folder contains:
+The classification pipeline is multi-stage and hierarchical. Each stage runs a weighted ensemble of 3 models (XceptionNet, DenseNet121, CNN):
 
 ```
-/models/                 # xception, densenet, cnn
-├── melanoma_models/
-├── nevus_models/
-├── binary_models/       # malignant or benign
-├── malignant_models/    # akiec, bcc
-└── benign_models/       # df, vasc, bkl
+Input image (any size)
+  │
+  ▼ Preprocessing → 224×224, normalized [0, 1]
+  │
+  ▼ Stage 0 — Melanoma?         (weights: 0.4 / 0.3 / 0.3)
+      score > 0.5 → MEL
+  │
+  ▼ Stage 1 — Nevus?            (weights: 0.35 / 0.55 / 0.1)
+      score < 0.5 → NV  ⚠ inverted label
+  │
+  ▼ Stage 2 — Benign or Malignant?  (weights: 0.3 / 0.3 / 0.4)
+  │
+  ├─ Malignant → Stage 3: AKIEC or BCC   (weights: 0.2 / 0.4 / 0.4)
+  └─ Benign   → Stage 4: BKL, DF, VASC  (weights: 0.2 / 0.6 / 0.2)
 ```
+
+**Total: 15 model files required** — see `backend/models/` for the expected structure.
+
+> Model training repository: [skin-cancer-detection](https://github.com/erenisci/skin-cancer-detection)
 
 ---
 
-## 🧪 Model Training
+## Getting Started
 
-The models used were trained on curated datasets with class balance, augmentation, and validation monitoring.
-
-> 🔗 **[Model Training Repository](https://github.com/erenisci/skin-cancer-detection)**
-
----
-
-## 🚀 Getting Started
-
-### 🔧 Backend (FastAPI)
+### Backend (FastAPI)
 
 ```bash
+# Start MongoDB
+"C:\Program Files\MongoDB\Server\7.0\bin\mongod.exe" --dbpath "C:\data\db"
+
+# Start backend
 cd backend
-python -m venv venv
-source venv/bin/activate  # or .\venv\Scripts\activate on Windows
-pip install -r requirements.txt
-uvicorn main:app --reload
+"C:\Program Files\Python312\python.exe" -m uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 📱 Frontend (Flutter)
+Swagger UI: `http://localhost:8000/docs`
+
+### Frontend (Flutter)
 
 ```bash
 cd frontend
@@ -165,35 +148,45 @@ flutter pub get
 flutter run
 ```
 
----
-
-## 📦 API Endpoints
-
-| Method | Endpoint       | Description                 |
-| ------ | -------------- | --------------------------- |
-| POST   | `/auth/login`  | User authentication         |
-| POST   | `/auth/signup` | Create new user             |
-| POST   | `/detect`      | Upload image for prediction |
-| POST   | `/report`      | Save analysis report        |
-| GET    | `/report/me`   | Fetch user reports          |
+Set your local IP in `frontend/.env`:
+```
+API_URL=http://<your-local-ip>:8000
+```
 
 ---
 
-## 📌 Features
+## API Endpoints
 
-- ✅ AI-powered skin lesion classification
-- ✅ Dynamic multi-stage ensemble prediction
-- ✅ PDF exportable diagnosis reports
-- ✅ Google & email authentication
-- ✅ MongoDB cloud data storage
-- ✅ Real-time tips & diagnosis feedback
-- ✅ Docker support (optional)
+| Method | Endpoint                           | Auth | Description                     |
+|--------|------------------------------------|------|---------------------------------|
+| POST   | `/api/auth/signup`                 | No   | Register a new user             |
+| POST   | `/api/auth/login`                  | No   | Login and receive tokens        |
+| POST   | `/api/auth/refresh-token`          | No   | Exchange refresh token          |
+| POST   | `/api/auth/request-password-reset` | No   | Send password reset email       |
+| POST   | `/api/auth/reset-password`         | No   | Reset password with token       |
+| POST   | `/api/auth/update-profile`         | JWT  | Update user profile             |
+| POST   | `/api/auth/change-password`        | JWT  | Change password                 |
+| POST   | `/api/auth/logout`                 | No   | Invalidate tokens               |
+| POST   | `/detect`                          | No   | Upload image for classification |
+| POST   | `/api/reports/upload`              | JWT  | Save detection report           |
+| GET    | `/api/reports/me`                  | JWT  | Fetch user's reports            |
+| GET    | `/api/reports/pdf/{id}`            | JWT  | Download PDF report             |
+| GET    | `/api/reports/image/{id}`          | JWT  | Download report image           |
 
 ---
 
-## 👥 Contributors
+## Features
 
-We worked on this project together:
+- AI-powered skin lesion classification (7 classes: MEL, NV, BCC, AKIEC, BKL, DF, VASC)
+- Multi-stage ensemble prediction pipeline
+- Exportable PDF diagnosis reports
+- Email-based authentication with password reset
+- MongoDB cloud-ready data storage
+- Light and dark theme
+
+---
+
+## Contributors
 
 - [@erenisci](https://github.com/erenisci)
 - [@zscengiz](https://github.com/zscengiz)
@@ -201,14 +194,14 @@ We worked on this project together:
 
 ---
 
-## 🧠 Disclaimer
+## Disclaimer
 
-All medical advice in this app is for **educational purposes only**.  
-For diagnosis or treatment decisions, consult a certified dermatologist or physician.
+All medical information in this app is for **educational purposes only**.
+For any diagnosis or treatment decision, consult a certified dermatologist or physician.
 
 ---
 
-## 📄 License
+## License
 
-This project is licensed under the **MIT License**.  
+This project is licensed under the **MIT License**.
 See the [LICENSE](LICENSE) file for full legal terms.

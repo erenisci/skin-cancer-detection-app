@@ -1,6 +1,6 @@
 ## Skin Cancer Detection App (Flutter Frontend)
 
-This is the Flutter-based mobile and web frontend for the Skin Cancer Detection system. It connects to a FastAPI backend to handle user authentication, image upload, classification, and report management.
+This is the Flutter-based mobile frontend for the Skin Cancer Detection system. It connects to a FastAPI backend to handle user authentication, image upload, AI-powered classification, and report management.
 
 ---
 
@@ -10,90 +10,104 @@ This is the Flutter-based mobile and web frontend for the Skin Cancer Detection 
 frontend/
 ├── android/                    # Android platform config
 ├── ios/                        # iOS platform config
-├── assets/                     # Static assets (fonts, images, etc.)
-│   ├── fonts/
+├── assets/                     # Images used across the app
 │   └── images/
 ├── lib/                        # Main Flutter application
-│   ├── app/                    # App-wide routing and navigation
-│   ├── assets/                 # Asset helpers
+│   ├── app/                    # App-wide routing (go_router)
+│   ├── assets/                 # Fonts
+│   │   └── fonts/
 │   ├── core/                   # Shared logic (theme, utils, constants)
 │   ├── models/                 # Dart data models
 │   ├── screens/                # All UI screens (feature-based)
-│   │   ├── auth/               # Authentication (login/signup/reset)
-│   │   ├── home/               # Home screen
+│   │   ├── auth/               # Login, signup, forgot/reset password
+│   │   ├── home/               # Home screen with UV index and tips
 │   │   ├── onboarding/         # Intro/tutorial screens
-│   │   ├── profile/            # User profile
-│   │   ├── reports/            # Report list and PDF viewer
-│   │   ├── scan/               # Camera and result display
-│   │   ├── settings/           # User preferences
-│   │   ├── theme/              # Theme toggling
+│   │   ├── profile/            # User profile and editing
+│   │   ├── reports/            # Report list and PDF download
+│   │   ├── scan/               # Camera capture, gallery picker, detection result
+│   │   ├── settings/           # Theme and preferences
 │   │   └── welcome/            # Landing/welcome screen
-│   ├── services/               # API service layer
+│   ├── services/               # API service layer (api_service.dart, api_endpoints.dart)
 │   ├── widgets/                # Reusable UI components
 │   └── main.dart               # App entry point
-├── test/                       # Widget & unit tests
-├── web/                        # Web platform files (icons, index.html)
-├── .env                        # Optional: environment variables
-├── pubspec.yaml                # Flutter dependencies and assets
-├── README.md                   # This file
-└── .gitignore, analysis_options.yaml, etc.
+├── test/                       # Widget and unit tests
+├── web/                        # Web platform files
+├── .env                        # Environment variables (API_URL)
+├── pubspec.yaml                # Flutter dependencies and asset declarations
+└── analysis_options.yaml       # Linter configuration
 ```
 
 ---
 
 ### Features
 
-- User registration, login, and password reset (with backend)
-- Upload lesion images for classification
-- View predictions and risk levels (mock or real)
-- Access previous reports and download PDFs
-- Supports light and dark theme
-- Mobile and web responsive design
+- User registration, login, and password reset
+- Camera and gallery image capture with crop overlay
+- AI-powered skin lesion classification (ensemble model or dummy mode)
+- Detailed diagnosis result with confidence, risk level, and advice
+- PDF report generation and sharing
+- View and download past reports
+- Light and dark theme support
 
 ---
 
 ### Setup Instructions
 
 1. Install Flutter SDK → https://docs.flutter.dev/get-started/install
-2. Run:
+2. Configure `.env` with your backend URL:
+   ```
+   API_URL=http://<your-local-ip>:8000
+   ```
+3. Install dependencies and run:
+   ```bash
+   flutter pub get
+   flutter run
+   ```
 
-```bash
-flutter pub get
-flutter run
-```
-
-> To run in Chrome:
-
+To run in Chrome:
 ```bash
 flutter run -d chrome
+```
+
+To build a debug APK:
+```bash
+flutter build apk --debug
 ```
 
 ---
 
 ### API Configuration
 
-The app connects to a FastAPI backend.
+The app reads the backend URL from `.env` via `flutter_dotenv`:
 
-Set your base URL in `.env` or inside your API service:
-
-```dart
-const baseUrl = "http://10.0.2.2:8000"; // Android emulator
 ```
+API_URL=http://192.168.1.33:8000
+```
+
+If running on an Android emulator, use:
+```
+API_URL=http://10.0.2.2:8000
+```
+
+The phone and computer must be on the same Wi-Fi network when using a physical device.
 
 ---
 
 ### Testing
 
-To run tests:
-
 ```bash
 flutter test
+```
+
+To run static analysis:
+```bash
+flutter analyze
 ```
 
 ---
 
 ### Notes
 
-- The `/detect` endpoint returns dummy data unless real models are added.
-- Make sure the backend is running before using authentication or prediction features.
-- Models and backend structure: see `../backend/README.md`
+- `/detect` returns dummy data unless real models are loaded in the backend.
+- Make sure MongoDB and the FastAPI backend are running before launching the app.
+- See `../backend/README.md` for backend setup and model integration details.
