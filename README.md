@@ -1,6 +1,6 @@
 # Skin Cancer Detection App
 
-An AI-powered Flutter application that helps users detect early signs of skin cancer using a deep learning ensemble pipeline. The app supports image classification, detailed diagnosis results, exportable PDF reports, and personalized skincare advice — all backed by a FastAPI backend and MongoDB.
+A fullstack Flutter + FastAPI application for skin cancer lesion tracking. Supports image upload, diagnosis result display, exportable PDF reports, and personalized skincare advice — backed by a FastAPI backend and MongoDB. ML model integration is ready but model files are not included in this repository (see `backend/models/README.md`).
 
 ---
 
@@ -23,7 +23,7 @@ An AI-powered Flutter application that helps users detect early signs of skin ca
     <td align="center">
       <img src="screenshots/Screenshot_3.png" width="190"/><br/>
       <b>AI-Powered Skin Analysis</b><br/>
-      Highlights the use of artificial intelligence in diagnosis.
+      Highlights the ML-based classification pipeline.
     </td>
   </tr>
   <tr>
@@ -60,7 +60,7 @@ An AI-powered Flutter application that helps users detect early signs of skin ca
 
 <p align="center">
   <img src="screenshots/Screenshot_9.jpg" width="270"/><br/>
-  Real-time prediction results with diagnostic confidence and expert-level advice.
+  Prediction results with diagnostic confidence and expert-level advice.
 </p>
 
 ---
@@ -86,15 +86,15 @@ An AI-powered Flutter application that helps users detect early signs of skin ca
 
 ## Tech Stack
 
-| Layer        | Technology                                      |
-|--------------|-------------------------------------------------|
-| Frontend     | Flutter (Dart), go_router, provider             |
-| Backend      | FastAPI (Python 3.12), Uvicorn                  |
-| AI / ML      | TensorFlow 2.x / Keras — ensemble pipeline      |
-| Database     | MongoDB with Motor (async)                      |
-| Auth         | JWT (access + refresh tokens), bcrypt           |
-| Reports      | PDF generation, GridFS file storage             |
-| Email        | SMTP via aiosmtplib                             |
+| Layer    | Technology                                                            |
+| -------- | --------------------------------------------------------------------- |
+| Frontend | Flutter (Dart), go_router, provider                                   |
+| Backend  | FastAPI (Python 3.12), Uvicorn                                        |
+| AI / ML  | TensorFlow 2.x / Keras — ensemble pipeline (model files not included) |
+| Database | MongoDB with Motor (async)                                            |
+| Auth     | JWT (access + refresh tokens), bcrypt                                 |
+| Reports  | PDF generation, GridFS file storage                                   |
+| Email    | SMTP via aiosmtplib                                                   |
 
 ---
 
@@ -149,6 +149,7 @@ flutter run
 ```
 
 Set your local IP in `frontend/.env`:
+
 ```
 API_URL=http://<your-local-ip>:8000
 ```
@@ -158,7 +159,7 @@ API_URL=http://<your-local-ip>:8000
 ## API Endpoints
 
 | Method | Endpoint                           | Auth | Description                     |
-|--------|------------------------------------|------|---------------------------------|
+| ------ | ---------------------------------- | ---- | ------------------------------- |
 | POST   | `/api/auth/signup`                 | No   | Register a new user             |
 | POST   | `/api/auth/login`                  | No   | Login and receive tokens        |
 | POST   | `/api/auth/refresh-token`          | No   | Exchange refresh token          |
@@ -177,8 +178,8 @@ API_URL=http://<your-local-ip>:8000
 
 ## Features
 
-- AI-powered skin lesion classification (7 classes: MEL, NV, BCC, AKIEC, BKL, DF, VASC)
-- Multi-stage ensemble prediction pipeline
+- Skin lesion image upload and classification result display (7 classes: MEL, NV, BCC, AKIEC, BKL, DF, VASC)
+- Multi-stage ensemble prediction pipeline (requires model files — see `backend/models/README.md`)
 - Exportable PDF diagnosis reports
 - Email-based authentication with password reset
 - MongoDB cloud-ready data storage
